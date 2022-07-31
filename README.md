@@ -4,6 +4,10 @@
 
 cargo run -- sample.csv
 
+or 
+
+cargo run --sample.csv > output.csv
+
 ## assumptions --
 
 1. withdrawal should not be performed if account is locked.
