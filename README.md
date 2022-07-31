@@ -6,7 +6,7 @@ cargo run -- sample.csv
 
 or 
 
-cargo run --sample.csv > output.csv
+cargo run -- sample.csv > output.csv
 
 ## assumptions --
 
