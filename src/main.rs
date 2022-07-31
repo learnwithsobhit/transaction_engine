@@ -29,6 +29,9 @@ impl From<String> for TransactionType {
     }
 }
 
+///
+/// records to be fetched from input csv
+/// 
 #[derive(Debug, Deserialize)]
 pub struct Record {
     r#type: String,
@@ -56,6 +59,9 @@ pub struct Client {
 }
 
 impl Client {
+    ///
+    /// create new client instance
+    /// 
     pub fn new(id: u16, tx_id: u32, transaction_type: TransactionType, amount: f32) -> Self {
         let total = match transaction_type {
             TransactionType::Deposit => amount as f64,
@@ -74,6 +80,9 @@ impl Client {
         }
     }
 
+    ///
+    /// perform deposit operation
+    /// 
     fn perform_deposit(
         &mut self,
         tx_id: u32,
@@ -87,6 +96,7 @@ impl Client {
     }
 
     ///
+    /// perform withdrawal operation
     /// if account is locked withdrawal can't be performed only deposit can be done
     ///
     fn perform_withdrawal(
@@ -103,6 +113,9 @@ impl Client {
         Ok(())
     }
 
+    ///
+    /// perform dispute operation
+    /// 
     fn perform_dispute(&mut self, tx_id: u32) -> Result<(), Box<dyn Error>> {
         if self.transactions.contains_key(&tx_id) {
             let tx = self.transactions.get(&tx_id).unwrap();
@@ -116,6 +129,7 @@ impl Client {
     }
 
     ///
+    /// perform resolve operation
     /// resolve should be applied for disputed and non frozen transactions
     ///
     fn perform_resolve(&mut self, tx_id: u32) -> Result<(), Box<dyn Error>> {
@@ -133,6 +147,7 @@ impl Client {
     }
 
     ///
+    /// perform chargeback operation
     /// Chargeback should be applied after resolved
     ///
     fn perform_chargeback(&mut self, tx_id: u32) -> Result<(), Box<dyn Error>> {
@@ -150,6 +165,9 @@ impl Client {
         Ok(())
     }
 
+    ///
+    /// execute each transaction based on input csv
+    /// 
     pub fn execute_transaction(
         &mut self,
         tx_id: u32,
@@ -178,12 +196,18 @@ pub struct TransactionEngine {
 }
 
 impl TransactionEngine {
+    ///
+    /// create new engine
+    /// 
     pub fn new() -> Self {
         TransactionEngine {
             clients: HashMap::default(),
         }
     }
 
+    ///
+    /// process csv inputs
+    /// 
     pub fn process_transactions(&mut self, record: Record) -> Result<(), Box<dyn Error>> {
         let transaction_type = record.r#type;
         let client_id = record.client.unwrap();
@@ -202,6 +226,9 @@ impl TransactionEngine {
         Ok(())
     }
 
+    ///
+    /// read input transaction csv
+    /// 
     pub fn read_input(&mut self) -> Result<(), Box<dyn Error>> {
         let args: Vec<String> = env::args().collect();
         if args.len() > 1 {
@@ -218,6 +245,9 @@ impl TransactionEngine {
         Ok(())
     }
 
+    ///
+    /// display results
+    /// 
     pub fn display_result(&mut self) {
         println!("client,available,held,total,locked");
         for client in self.clients.values() {
