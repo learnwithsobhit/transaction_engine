@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::{collections::HashMap, env, io::Error};
+use std::{collections::HashMap, env, error::Error};
 
 ///
 /// transaction type
@@ -79,7 +79,7 @@ impl Client {
         tx_id: u32,
         tx_type: TransactionType,
         amount: f32,
-    ) -> Result<(), Error> {
+    ) -> Result<(), Box<dyn Error>> {
         self.available += amount;
         self.total = (self.available + self.held) as f64;
         self.transactions.insert(tx_id, (tx_type, amount));
@@ -94,7 +94,7 @@ impl Client {
         tx_id: u32,
         tx_type: TransactionType,
         amount: f32,
-    ) -> Result<(), Error> {
+    ) -> Result<(), Box<dyn Error>> {
         if self.available > amount && !self.locked {
             self.available -= amount;
             self.total = (self.available + self.held) as f64;
@@ -103,7 +103,7 @@ impl Client {
         Ok(())
     }
 
-    fn perform_dispute(&mut self, tx_id: u32) -> Result<(), Error> {
+    fn perform_dispute(&mut self, tx_id: u32) -> Result<(), Box<dyn Error>> {
         if self.transactions.contains_key(&tx_id) {
             let tx = self.transactions.get(&tx_id).unwrap();
             let amount = tx.1;
@@ -118,7 +118,7 @@ impl Client {
     ///
     /// resolve should be applied for disputed and non frozen transactions
     ///
-    fn perform_resolve(&mut self, tx_id: u32) -> Result<(), Error> {
+    fn perform_resolve(&mut self, tx_id: u32) -> Result<(), Box<dyn Error>> {
         if self.transactions.contains_key(&tx_id) {
             let tx = self.transactions.get(&tx_id).unwrap();
             let amount = tx.1;
@@ -135,7 +135,7 @@ impl Client {
     ///
     /// Chargeback should be applied after resolved
     ///
-    fn perform_chargeback(&mut self, tx_id: u32) -> Result<(), Error> {
+    fn perform_chargeback(&mut self, tx_id: u32) -> Result<(), Box<dyn Error>> {
         if self.transactions.contains_key(&tx_id) {
             let tx = self.transactions.get(&tx_id).unwrap();
             let amount = tx.1;
@@ -155,7 +155,7 @@ impl Client {
         tx_id: u32,
         transaction_type: TransactionType,
         amount: f32,
-    ) -> Result<(), Error> {
+    ) -> Result<(), Box<dyn Error>> {
         match transaction_type {
             TransactionType::Deposit => self.perform_deposit(tx_id, transaction_type, amount)?,
             TransactionType::Withdrawal => {
@@ -184,7 +184,7 @@ impl TransactionEngine {
         }
     }
 
-    pub fn process_transactions(&mut self, record: Record) -> Result<(), Error> {
+    pub fn process_transactions(&mut self, record: Record) -> Result<(), Box<dyn Error>> {
         let transaction_type = record.r#type;
         let client_id = record.client.unwrap();
         let tx_id = record.tx.unwrap();
@@ -202,7 +202,7 @@ impl TransactionEngine {
         Ok(())
     }
 
-    pub fn read_input(&mut self) -> Result<(), Error> {
+    pub fn read_input(&mut self) -> Result<(), Box<dyn Error>> {
         let args: Vec<String> = env::args().collect();
         if args.len() > 1 {
             let mut rdr = csv::Reader::from_path(&args[1])?;
@@ -213,7 +213,7 @@ impl TransactionEngine {
             }
             self.display_result();
         } else {
-            println!("input csv file not found!");
+            return Err(From::from("input csv file not found!"));
         }
         Ok(())
     }
@@ -242,5 +242,8 @@ impl Default for TransactionEngine {
 
 fn main() {
     let mut engine = TransactionEngine::new();
-    let _res = engine.read_input().is_ok();
+    let res = engine.read_input();
+    if let Some(e) = res.err() {
+        println!("{:?}", e.to_string());
+    }
 }
