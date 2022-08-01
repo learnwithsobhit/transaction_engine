@@ -65,6 +65,7 @@ impl TransactionEngine {
         println!("client,available,held,total,locked");
         for client in self.clients.values_mut() {
             client.show_info();
+            println!();
         }
     }
 }

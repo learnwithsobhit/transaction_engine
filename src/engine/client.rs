@@ -161,14 +161,10 @@ impl Client {
     }
 
     pub fn show_info(&mut self) {
-        let info = std::format!(
-            "{},{},{},{},{}",
-            self._id,
-            self.available,
-            self.held,
-            self.total,
-            self.locked
-        );
-        println!("{:?}", info);
+        print!("{},", self._id);
+        print!("{},", self.available);
+        print!("{},", self.held);
+        print!("{},", self.total);
+        print!("{}", self.locked);
     }
 }
