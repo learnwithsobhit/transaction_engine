@@ -161,10 +161,9 @@ impl Client {
     }
 
     pub fn show_info(&mut self) {
-        print!("{},", self._id);
-        print!("{},", self.available);
-        print!("{},", self.held);
-        print!("{},", self.total);
-        print!("{}", self.locked);
+        print!(
+            "{},{},{},{},{}",
+            self._id, self.available, self.held, self.total, self.locked
+        );
     }
 }
